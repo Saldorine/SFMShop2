@@ -14,8 +14,6 @@ class Order:
         self.total = self.calculate_total()
 
 
-
-
     def calculate_total(self):
         total = 0
         for product in self.products:
@@ -28,6 +26,7 @@ class Order:
         if product.__class__.__name__ != 'Product':
             raise DataTypeError('Переданный объект не является экземляром класса Product')
         self.products.append(product)
+
 
     def __str__(self):
         return f'Заказ пользователя {self.user} на сумму {self.total} руб.'

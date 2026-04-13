@@ -39,6 +39,7 @@ class Order(LoggableMixin, ValidatableMixin, SerializableMixin):
         self.log(f"В заказ добавлен новый товар: {product}")
 
 
+
     def __str__(self):
         return f"Заказ пользователя {self.user} на сумму {self.total} руб."
 

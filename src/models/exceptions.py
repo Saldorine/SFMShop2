@@ -22,6 +22,10 @@ class NegativePriceError(ValidationError):
     pass
 
 
+class NegativeQuantityError(ValidationError):
+    pass
+
+
 class InsufficientStockError(BusinessLogicError):
     pass
 

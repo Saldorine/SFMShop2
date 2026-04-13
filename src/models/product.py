@@ -1,19 +1,26 @@
 from src.models.exceptions import NegativePriceError, NegativeQuantityError
+from src.models.mixins import LoggableMixin, ValidatableMixin, SerializableMixin
 from dataclasses import dataclass
 
 
 @dataclass
-class Product:
+class Product(LoggableMixin, ValidatableMixin, SerializableMixin):
     name: str
     _price: float
     _quantity: int
 
 
     def __post_init__(self):
+        self.validate()
+        self.log(f"Товар создан: {repr(self)}")
+
+
+    def validate(self):
         if self._price < 0:
             raise NegativePriceError("Цена товара не может быть отрицательной.")
         if self._quantity < 0:
             raise NegativeQuantityError("Цена товара не может быть отрицательной.")
+        return True
 
 
     @classmethod
@@ -33,7 +40,9 @@ class Product:
     def price(self, value):
         if value < 0:
             raise NegativePriceError("Цена товара не может быть отрицательной.")
+        price = self._price
         self._price = value
+        self.log(f"Цена товара изменена: {price} -> {value}")
 
 
     @property
@@ -45,7 +54,10 @@ class Product:
     def quantity(self, value):
         if value < 0:
             raise NegativeQuantityError("Количество товара не может быть отрицательным.")
+        quantity = self._quantity
         self._quantity = value
+        self.log(f"Количество товара изменено: {quantity} -> {value}")
+
 
     def get_total_price(self):
         return self.price * self.quantity
@@ -63,3 +75,10 @@ class Product:
     def __lt__(self, other):
         return self.price < other.price
 
+
+if __name__ == '__main__':
+    product = Product('asdf', 1, 1)
+    product.price = 10
+    product.quantity = 10
+    print(product.is_valid())
+    print(product.to_json())

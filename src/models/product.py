@@ -1,6 +1,32 @@
 from src.models.exceptions import NegativePriceError, NegativeQuantityError
 from src.models.mixins import LoggableMixin, ValidatableMixin, SerializableMixin
+
 from dataclasses import dataclass
+from abc import ABC, abstractmethod
+
+
+class DiscountStrategy(ABC):
+    @abstractmethod
+    def apply(self, price: float) -> float:
+        pass
+
+
+class PercentDiscount(DiscountStrategy):
+    def __init__(self, percent: float):
+        self.percent = percent
+
+
+    def apply(self, price: float) -> float:
+        return price * (1 - self.percent / 100)
+
+
+class FixedDiscount(DiscountStrategy):
+    def __init__(self, amount: float):
+        self.amount = amount
+
+
+    def apply(self, price: float) -> float:
+        return price - self.amount
 
 
 @dataclass
@@ -63,9 +89,8 @@ class Product(LoggableMixin, ValidatableMixin, SerializableMixin):
         return self.price * self.quantity
 
 
-    @staticmethod
-    def calculate_discount(price, discount):
-        return price - price * discount / 100
+    def calculate_price(self, discount: DiscountStrategy):
+        return discount.apply(self.price)
 
 
     def __str__(self):
@@ -77,8 +102,14 @@ class Product(LoggableMixin, ValidatableMixin, SerializableMixin):
 
 
 if __name__ == '__main__':
-    product = Product('asdf', 1, 1)
-    product.price = 10
-    product.quantity = 10
+    product = Product('Ноутбук', 10000.00, 1)
+    product.price = 15000.00
+    product.quantity = 1
     print(product.is_valid())
     print(product.to_json())
+
+    discount_p = PercentDiscount(10)
+    discount_f = FixedDiscount(500)
+
+    print(product.calculate_price(discount_p))
+    print(product.calculate_price(discount_f))

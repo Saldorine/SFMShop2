@@ -1,38 +1,66 @@
+from abc import ABC, abstractmethod
+
+
 class Payment:
-    def __init__(self, amount):
+    def __init__(self, order_id, amount, payment_method):
+        self.order_id = order_id
         self.amount = amount
+        self.payment_method = payment_method
+        self.status = "pending"
 
 
-    def process_payment(self):
-        raise NotImplementedError("Метод долен быть переопределен.")
+class PaymentMethod(ABC):
+    @abstractmethod
+    def process(self, amount: float) -> bool:
+        """Обработка платежа"""
+        pass
 
 
-class Loggable():
-    def log(self):
-        print("Loggable.log()")
+    @abstractmethod
+    def calculate_fee(self, amount: float) -> float:
+        """Расчет комиссии"""
+        pass
 
 
-class CardPayment(Payment, Loggable):
-    def __init__(self, amount, card_number):
-        super().__init__(amount)
-        self.__card_number = card_number
+class CardPayment(PaymentMethod):
+    def calculate_fee(self, amount: float) -> float:
+        """Расчет комиссии для карты"""
+        if amount > 10000:
+            return amount * 0.02
+        return amount * 0.03
 
 
-    def process_payment(self):
-        self.log()
-        return f'Оплата картой **** {self.__card_number[-4:]}: {self.amount} руб.'
+    def process(self, amount: float) -> bool:
+        """Обработка платежа картой"""
+        fee = self.calculate_fee(amount)
+        total = amount + fee
+        print(f"Зарядка карты на сумму {total}")
+        return True
 
 
-class PayPalPayment(Payment, Loggable):
-    def __init__(self, amount, email):
-        super().__init__(amount)
-        self._email = email
+class PayPalPayment(PaymentMethod):
+    def calculate_fee(self, amount: float) -> float:
+        """Расчет комиссии для PayPal"""
+        return amount * 0.035
 
 
-    def get_email(self):
-        return self._email
+    def process(self, amount: float) -> bool:
+        """Обработка платежа через PayPal"""
+        fee = self.calculate_fee(amount)
+        total = amount + fee
+        print(f"Зарядка PayPal на сумму {total}")
+        return True
 
 
-    def process_payment(self):
-        self.log()
-        return f'Оплата PayPal ({self._email}): {self.amount} руб.'
+class BankTransferPayment(PaymentMethod):
+    def calculate_fee(self, amount: float) -> float:
+        """Расчет комиссии для банковского перевода"""
+        return 50
+
+
+    def process(self, amount: float) -> bool:
+        """Обработка банковского перевода"""
+        fee = self.calculate_fee(amount)
+        total = amount + fee
+        print(f"Банковский перевод на сумму {total}")
+        return True

@@ -1,6 +1,8 @@
 from src.models.exceptions import ValidationError
+from src.models.metaclasses import ModelMeta
 
-class User:
+
+class User(metaclass=ModelMeta):
     def __init__(self, name, email):
         self.name = name
         self._email = self.set_email(email)

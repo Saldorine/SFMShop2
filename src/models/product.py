@@ -1,5 +1,6 @@
 from src.models.exceptions import NegativePriceError, NegativeQuantityError
 from src.models.mixins import LoggableMixin, ValidatableMixin, SerializableMixin
+from src.models.metaclasses import ModelMeta
 
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
@@ -30,7 +31,7 @@ class FixedDiscount(DiscountStrategy):
 
 
 @dataclass
-class Product(LoggableMixin, ValidatableMixin, SerializableMixin):
+class Product(LoggableMixin, ValidatableMixin, SerializableMixin, metaclass=ModelMeta):
     name: str
     _price: float
     _quantity: int
@@ -113,3 +114,5 @@ if __name__ == '__main__':
 
     print(product.calculate_price(discount_p))
     print(product.calculate_price(discount_f))
+
+    print(product.to_dict())

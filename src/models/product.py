@@ -1,6 +1,7 @@
 from src.models.exceptions import NegativePriceError, NegativeQuantityError
 from src.models.mixins import LoggableMixin, ValidatableMixin, SerializableMixin
 from src.models.metaclasses import ModelMeta
+from src.models.descriptors import PositiveNumber, CachedProperty
 
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
@@ -31,23 +32,18 @@ class FixedDiscount(DiscountStrategy):
 
 
 @dataclass
-class Product(LoggableMixin, ValidatableMixin, SerializableMixin, metaclass=ModelMeta):
-    name: str
-    _price: float
-    _quantity: int
+class Product(LoggableMixin, SerializableMixin, metaclass=ModelMeta):
+    price = PositiveNumber("_price")
+    quantity = PositiveNumber("_quantity")
+
+    def __init__(self, name: str, price: float, quantity: float):
+        self.name = name
+        self.price = price
+        self.quantity = quantity
 
 
     def __post_init__(self):
-        self.validate()
         self.log(f"Товар создан: {repr(self)}")
-
-
-    def validate(self):
-        if self._price < 0:
-            raise NegativePriceError("Цена товара не может быть отрицательной.")
-        if self._quantity < 0:
-            raise NegativeQuantityError("Цена товара не может быть отрицательной.")
-        return True
 
 
     @classmethod
@@ -58,34 +54,7 @@ class Product(LoggableMixin, ValidatableMixin, SerializableMixin, metaclass=Mode
         return cls(name, price, quantity)
 
 
-    @property
-    def price(self):
-        return self._price
-
-
-    @price.setter
-    def price(self, value):
-        if value < 0:
-            raise NegativePriceError("Цена товара не может быть отрицательной.")
-        price = self._price
-        self._price = value
-        self.log(f"Цена товара изменена: {price} -> {value}")
-
-
-    @property
-    def quantity(self):
-        return self._quantity
-
-
-    @quantity.setter
-    def quantity(self, value):
-        if value < 0:
-            raise NegativeQuantityError("Количество товара не может быть отрицательным.")
-        quantity = self._quantity
-        self._quantity = value
-        self.log(f"Количество товара изменено: {quantity} -> {value}")
-
-
+    @CachedProperty
     def get_total_price(self):
         return self.price * self.quantity
 
@@ -105,14 +74,8 @@ class Product(LoggableMixin, ValidatableMixin, SerializableMixin, metaclass=Mode
 if __name__ == '__main__':
     product = Product('Ноутбук', 10000.00, 1)
     product.price = 15000.00
-    product.quantity = 1
-    print(product.is_valid())
-    print(product.to_json())
+    product.quantity = 3
 
-    discount_p = PercentDiscount(10)
-    discount_f = FixedDiscount(500)
 
-    print(product.calculate_price(discount_p))
-    print(product.calculate_price(discount_f))
-
-    print(product.to_dict())
+    print(product.get_total_price)
+    print(product.get_total_price)

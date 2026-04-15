@@ -2,9 +2,9 @@ from src.models.exceptions import InvalidOrderError, DataTypeError
 from src.models.mixins import LoggableMixin, ValidatableMixin, SerializableMixin
 from src.models.product import Product
 from src.models.user import User
+from src.models.metaclasses import ModelMeta
 
-
-class Order(LoggableMixin, ValidatableMixin, SerializableMixin):
+class Order(LoggableMixin, ValidatableMixin, SerializableMixin, metaclass=ModelMeta):
     def __init__(self, user, products):
         self.user = user
         self.products = products.copy()
@@ -59,3 +59,5 @@ if __name__ == "__main__":
     total = OrderCalculator.calculate_total(order)
 
     print(total)
+
+    print(ModelMeta._registry)
